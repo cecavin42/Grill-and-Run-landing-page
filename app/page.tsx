@@ -1,65 +1,124 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "duplicate">("idle");
+  const [message, setMessage] = useState("");
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/count")
+      .then((res) => res.json())
+      .then((data) => setCount(data.count))
+      .catch(() => setCount(null));
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setStatus("success");
+        setMessage("You're on the list! We'll be in touch soon.");
+        setEmail("");
+        setCount(data.count);
+      } else if (res.status === 409) {
+        setStatus("duplicate");
+        setMessage("This email is already registered.");
+        if (data.count !== undefined) setCount(data.count);
+      } else {
+        setStatus("error");
+        setMessage(data.error || "Something went wrong. Please try again.");
+      }
+    } catch {
+      setStatus("error");
+      setMessage("Network error. Please try again.");
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center font-sans" style={{ backgroundColor: '#add8e6' }}>
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 sm:items-start" style={{ backgroundColor: '#add8e6' }}>
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen flex flex-col items-center justify-center bg-orange-50 px-4">
+      {/* Logo / Brand */}
+      <div className="mb-6 flex flex-col items-center gap-2">
+        <div className="text-5xl">🔥🏃</div>
+        <h1 className="text-4xl font-extrabold tracking-tight text-orange-700 sm:text-5xl">
+          Grill &amp; Run Inc.
+        </h1>
+        <p className="text-sm font-semibold uppercase tracking-widest text-orange-400">
+          Something hot is coming
+        </p>
+      </div>
+
+      {/* Tagline */}
+      <p className="max-w-md text-center text-lg text-gray-600 mb-10">
+        We&apos;re building a product that blends the thrill of the grill with the rush of the run.
+        Be the first to know when we launch.
+      </p>
+
+      {/* Email Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="flex w-full max-w-md flex-col gap-3 sm:flex-row"
+      >
+        <input
+          type="email"
+          required
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={status === "loading"}
+          className="flex-1 rounded-full border border-orange-300 bg-white px-5 py-3 text-gray-800 placeholder-gray-400 shadow-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 disabled:opacity-50"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        <button
+          type="submit"
+          disabled={status === "loading"}
+          className="rounded-full bg-orange-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-orange-700 disabled:opacity-50"
+        >
+          {status === "loading" ? "Joining…" : "Notify Me"}
+        </button>
+      </form>
+
+      {/* Feedback message */}
+      {message && (
+        <p
+          className={`mt-4 text-sm font-medium ${
+            status === "success"
+              ? "text-green-600"
+              : status === "duplicate"
+              ? "text-yellow-600"
+              : "text-red-500"
+          }`}
+        >
+          {message}
+        </p>
+      )}
+
+      {/* Counter */}
+      <div className="mt-12 flex flex-col items-center gap-1">
+        <span className="text-5xl font-extrabold text-orange-600">
+          {count !== null ? count.toLocaleString() : "—"}
+        </span>
+        <span className="text-sm font-medium uppercase tracking-widest text-gray-500">
+          people waiting
+        </span>
+      </div>
+
+      {/* Footer */}
+      <p className="mt-16 text-xs text-gray-400">
+        © {new Date().getFullYear()} Grill &amp; Run Inc. All rights reserved.
+      </p>
     </div>
   );
 }
