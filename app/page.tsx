@@ -37,15 +37,25 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Game — scales to fit any screen, no clipping, no scrollbars */}
-      <div ref={wrapperRef} className="w-full" style={{ maxWidth: `${FRAME_W}px` }}>
+      {/* Outer wrapper sets the visual size; inner is absolute so it never
+          causes layout overflow → no scrollbars on any screen size */}
+      <div
+        ref={wrapperRef}
+        className="w-full relative overflow-hidden"
+        style={{
+          maxWidth: `${FRAME_W}px`,
+          height: `${FRAME_H * scale}px`,
+        }}
+      >
         <div
           style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
             width: `${FRAME_W}px`,
             height: `${FRAME_H}px`,
             transformOrigin: "top left",
             transform: `scale(${scale})`,
-            marginBottom: `${FRAME_H * (scale - 1)}px`,
           }}
         >
           <iframe

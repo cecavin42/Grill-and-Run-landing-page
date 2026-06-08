@@ -28,7 +28,7 @@ const keys = {}, prev = {};
 document.addEventListener('keydown', e => { keys[e.code] = true; e.preventDefault(); });
 document.addEventListener('keyup',   e => { keys[e.code] = false; });
 
-canvas.addEventListener('click', e => {
+canvas.addEventListener('mousedown', e => {
   const rect = canvas.getBoundingClientRect();
   const mx = (e.clientX - rect.left) * (W / rect.width);
   const my = (e.clientY - rect.top)  * (H / rect.height);
