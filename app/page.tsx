@@ -13,13 +13,13 @@ export default function Home() {
       </div>
 
       {/* Game iframe */}
-      <div className="w-full max-w-[820px]">
+      <div className="w-full overflow-x-auto flex justify-center">
         <iframe
           src="/game.html"
-          width="820"
-          height="470"
-          className="block w-full border-2 border-[#444] rounded"
-          style={{ maxWidth: '820px', aspectRatio: '820 / 470' }}
+          width="804"
+          height="454"
+          className="block flex-shrink-0 border-2 border-[#444] rounded"
+          style={{ width: '804px', height: '454px' }}
           title="Grill and Run Game"
         />
       </div>
