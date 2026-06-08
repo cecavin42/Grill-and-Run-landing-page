@@ -1,29 +1,4 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
-
-const GAME_W = 800;
-const GAME_H = 450;
-const BORDER = 4; // 2px border each side
-const FRAME_W = GAME_W + BORDER;
-const FRAME_H = GAME_H + BORDER;
-
 export default function Home() {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    function updateScale() {
-      if (wrapperRef.current) {
-        const available = wrapperRef.current.offsetWidth;
-        setScale(Math.min(1, available / FRAME_W));
-      }
-    }
-    updateScale();
-    window.addEventListener("resize", updateScale);
-    return () => window.removeEventListener("resize", updateScale);
-  }, []);
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#1a1a2e] px-4 py-10">
       {/* Header */}
@@ -37,36 +12,20 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Outer wrapper sets the visual size; inner is absolute so it never
-          causes layout overflow → no scrollbars on any screen size */}
+      {/* The wrapper uses aspect-ratio so the iframe always has the correct
+          height. The canvas inside game.html uses max-width:100% / height:auto
+          so it scales with the iframe — no CSS transforms, no coordinate
+          corruption, clicks always land at the right canvas position. */}
       <div
-        ref={wrapperRef}
-        className="w-full relative overflow-hidden"
-        style={{
-          maxWidth: `${FRAME_W}px`,
-          height: `${FRAME_H * scale}px`,
-        }}
+        className="w-full"
+        style={{ maxWidth: "804px", aspectRatio: "804 / 454" }}
       >
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: `${FRAME_W}px`,
-            height: `${FRAME_H}px`,
-            transformOrigin: "top left",
-            transform: `scale(${scale})`,
-          }}
-        >
-          <iframe
-            src="/game.html"
-            width={FRAME_W}
-            height={FRAME_H}
-            className="block border-2 border-[#444] rounded"
-            style={{ width: `${FRAME_W}px`, height: `${FRAME_H}px` }}
-            title="Grill and Run Game"
-          />
-        </div>
+        <iframe
+          src="/game.html"
+          className="block w-full h-full rounded"
+          style={{ border: "none" }}
+          title="Grill and Run Game"
+        />
       </div>
 
       {/* Footer */}
